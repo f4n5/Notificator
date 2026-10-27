@@ -201,7 +201,6 @@
         });
       });
 
-      // --- CHECK AUTH & LOAD INFO ---
       async function checkAuth() {
         try {
           const res = await fetch(`${API_URL}/api/me`, { credentials: 'include' });
@@ -219,13 +218,9 @@
         }
       }
 
-      // Function to simulate pulling new updates on the frontend
-      // (In a real app, you'd fetch an /api/status endpoint here)
       function pollWebsiteInfo() {
         console.log("[WEB] polling status...");
         const updateList = document.getElementById('update-list');
-        
-        // Just adding a fake dynamic update card to show it's working every 5 mins
         const now = new Date().toLocaleTimeString();
         const card = document.createElement('div');
         card.className = 'card';
@@ -240,9 +235,8 @@
         if (updateList.children.length > 4) updateList.lastChild.remove();
       }
 
-      // Run immediately, then every 5 minutes
       pollWebsiteInfo();
-      setInterval(pollWebsiteInfo, 300000); // 300000ms = 5 mins
+      setInterval(pollWebsiteInfo, 300000); // 5 mins
 
       function renderHeader() {
         if (currentUser) {
