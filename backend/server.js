@@ -4,18 +4,15 @@ const axios = require('axios');
 const session = require('express-session');
 const PgSession = require('connect-pg-simple')(session);
 const { Pool } = require('pg');
-const cors = require('cors'); // ADDED CORS
-const path = require('path');
+const cors = require('cors');
 
 const app = express();
 
-// Postgres pool — shared with the bot
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 
-// Create config table if it doesn't exist
 async function initDb() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS guild_configs (
@@ -28,15 +25,14 @@ async function initDb() {
 }
 initDb().catch(err => console.error('db init failed:', err.message));
 
-// Middleware
-// ALLOW CORS FROM ANYWHERE (or restrict it to your github pages URL)
+// CORS must match your GitHub Pages URL EXACTLY
 app.use(cors({
-  origin: true, // Reflects the request origin
+  origin: 'https://f4n5.github.io', 
   credentials: true
 }));
 app.use(express.json());
 
-// Session setup
+// Cross-domain session cookie setup
 app.use(session({
   store: new PgSession({ pool, tableName: 'session' }),
   secret: process.env.SESSION_SECRET || 'fallback_secret_change_me',
@@ -44,28 +40,24 @@ app.use(session({
   saveUninitialized: false,
   cookie: { 
     secure: true, 
-    sameSite: 'none', // Required for cross-domain cookies
+    sameSite: 'none', 
     maxAge: 7 * 24 * 60 * 60 * 1000 
   }
 }));
-
-// Serve static files if you ever add them back
-app.use(express.static(path.join(__dirname, 'public')));
 
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 const REDIRECT_URI = process.env.REDIRECT_URI;
 
-// 1. Kick off OAuth
 app.get('/auth/discord', (req, res) => {
   const url = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=identify%20guilds`;
   res.redirect(url);
 });
 
-// 2. OAuth callback
 app.get('/auth/callback', async (req, res) => {
   const { code } = req.query;
   if (!code) return res.status(400).send('no code');
+  
   try {
     const tokenRes = await axios.post('https://discord.com/api/oauth2/token',
       new URLSearchParams({
@@ -89,30 +81,29 @@ app.get('/auth/callback', async (req, res) => {
       username: userRes.data.username,
       avatar: userRes.data.avatar
     };
-    // only guilds where user has MANAGE_GUILD (0x20)
+    
+    // Only servers where user has Admin/Manage Server perms
     req.session.guilds = guildsRes.data.filter(g => (BigInt(g.permissions) & 0x20n) === 0x20n);
 
-    // Redirect back to your HTML page! (Change this if your docs site is somewhere else)
-    // You can replace this with process.env.FRONTEND_URL if you want to be clean
-    res.redirect('https://f4n5.github.io/Notificator'); 
+    res.redirect('https://f4n5.github.io/Notificator/'); 
   } catch (err) {
-    console.error(err.response?.data || err.message);
-    res.status(500).send('oauth failed');
+    console.error('OAUTH ERROR:', err.response?.data || err.message);
+    if (err.response?.status === 429) {
+      return res.redirect('https://f4n5.github.io/Notificator/?error=rate_limited');
+    }
+    res.redirect('https://f4n5.github.io/Notificator/?error=oauth_failed');
   }
 });
 
-// 3. Who am I
 app.get('/api/me', (req, res) => {
   if (!req.session.user) return res.status(401).json({ error: 'not logged in' });
   res.json({ user: req.session.user, guilds: req.session.guilds });
 });
 
-// 4. Logout
 app.post('/api/logout', (req, res) => {
   req.session.destroy(() => res.json({ ok: true }));
 });
 
-// 5. Save config
 app.post('/api/config/:guildId', async (req, res) => {
   if (!req.session.user) return res.status(401).json({ error: 'not logged in' });
   const { guildId } = req.params;
@@ -133,7 +124,6 @@ app.post('/api/config/:guildId', async (req, res) => {
   }
 });
 
-// 6. Load config
 app.get('/api/config/:guildId', async (req, res) => {
   if (!req.session.user) return res.status(401).json({ error: 'not logged in' });
   try {
