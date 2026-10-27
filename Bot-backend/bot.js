@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, EmbedBuilder, REST, Routes, SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const axios = require('axios');
 const { Pool } = require('pg');
 const http = require('http');
@@ -14,7 +14,7 @@ const ROBLOX_API = 'https://clientsettings.roblox.com/v2/client-version/WindowsP
 const POLL_INTERVAL = 60 * 1000;
 let lastVersion = null;
 
-// --- shared helper ---
+// --- DB HELPERS ---
 async function getAllConfigs() {
   const r = await pool.query('SELECT guild_id, config FROM guild_configs');
   return r.rows;
@@ -25,50 +25,64 @@ async function getGuildConfig(guildId) {
   return r.rows[0]?.config || {};
 }
 
-// --- send to one guild ---
+async function saveGuildConfig(guildId, config) {
+  await pool.query(
+    `INSERT INTO guild_configs (guild_id, config, updated_at)
+     VALUES ($1, $2, NOW())
+     ON CONFLICT (guild_id) DO UPDATE SET config = $2, updated_at = NOW()`,
+    [guildId, config]
+  );
+}
+
+// --- SEND HELPER ---
 async function sendToGuild(guildId, config, embed) {
   if (!config.channel) return;
   try {
     const channel = await client.channels.fetch(config.channel).catch(() => null);
     if (!channel || !channel.isTextBased()) return;
-    await channel.send({
-      content: config.role && config.role !== 'none' ? config.role : '',
-      embeds: [embed]
-    });
-    console.log(`sent -> ${guildId} #${channel.name}`);
+    
+    let content = '';
+    if (config.role && config.role !== 'none') {
+      content = config.role.startsWith('<@&') ? config.role : `<@&${config.role}>`;
+    }
+
+    await channel.send({ content, embeds: [embed] });
+    console.log(`[ALERT] sent to ${guildId} in #${channel.name}`);
   } catch (err) {
-    console.error(`send fail ${guildId}:`, err.message);
+    console.error(`[ERROR] send fail ${guildId}:`, err.message);
   }
 }
 
-// --- update poller ---
+// --- ROBLOX POLLER ---
 async function checkUpdates() {
   try {
     const res = await axios.get(ROBLOX_API, { timeout: 10000 });
     const currentVersion = res.data.clientVersionUpload;
 
     if (lastVersion && currentVersion !== lastVersion) {
-      console.log(`new version: ${currentVersion}`);
+      console.log(`[POLLER] new roblox version: ${currentVersion}`);
       const configs = await getAllConfigs();
+      
       for (const row of configs) {
         if (row.config.updates === false) continue;
+        
         const embed = new EmbedBuilder()
-          .setTitle('🔄 roblox update detected')
-          .setDescription('new client build live on LIVE channel')
-          .addFields({ name: 'version', value: `\`${currentVersion}\`` })
+          .setTitle('🔄 Roblox Update Detected')
+          .setDescription('A new client build is live on the LIVE channel.')
+          .addFields({ name: 'Version', value: `\`${currentVersion}\`` })
           .setColor('#6bc8ff')
           .setTimestamp();
+          
         await sendToGuild(row.guild_id, row.config, embed);
       }
     }
     lastVersion = currentVersion;
   } catch (err) {
-    console.error('roblox api:', err.message);
+    console.error('[POLLER ERROR]', err.message);
   }
 }
 
-// --- HTTP endpoint so you can manually fire banwave alerts ---
-// POST http://bot-host:port/banwave  with { "secret": "yoursecret", "message": "optional text" }
+// --- HTTP CONTROL (for website webhooks) ---
 const server = http.createServer(async (req, res) => {
   if (req.method === 'POST' && req.url === '/banwave') {
     let body = '';
@@ -77,57 +91,101 @@ const server = http.createServer(async (req, res) => {
       try {
         const data = JSON.parse(body || '{}');
         if (data.secret !== process.env.WEBHOOK_SECRET) {
-          res.writeHead(403); return res.end('nope');
+          res.writeHead(403); return res.end('unauthorized');
         }
+        
         const configs = await getAllConfigs();
         for (const row of configs) {
           if (row.config.banwaves === false) continue;
+          
           const embed = new EmbedBuilder()
             .setTitle('⚠️ BANWAVE DETECTED')
-            .setDescription(data.message || 'mass detection event in progress. lock in.')
+            .setDescription(data.message || 'Mass detection event in progress. Lock in.')
             .setColor('#ff3b5c')
             .setTimestamp();
+            
           await sendToGuild(row.guild_id, row.config, embed);
         }
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ ok: true, guilds: configs.length }));
+        res.writeHead(200); res.end('ok');
       } catch (e) {
         res.writeHead(500); res.end('err');
       }
     });
-  } else if (req.method === 'GET' && req.url === '/health') {
-    res.writeHead(200); res.end('ok');
   } else {
     res.writeHead(404); res.end();
   }
 });
 
-server.listen(process.env.PORT || 8080, () => {
-  console.log(`http control on ${process.env.PORT || 8080}`);
-});
+// --- BOT READY & SLASH COMMANDS ---
+client.once('ready', async () => {
+  console.log(`[BOT] Online as ${client.user.tag}`);
 
-// --- discord ready ---
-client.once('ready', () => {
-  console.log(`bot online: ${client.user.tag}`);
+  const commands = [
+    new SlashCommandBuilder()
+      .setName('setup')
+      .setDescription('Set the channel for RBX Watch alerts')
+      .addChannelOption(opt => opt.setName('channel').setDescription('The channel to send alerts').setRequired(true))
+      .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
+    new SlashCommandBuilder()
+      .setName('toggle')
+      .setDescription('Turn updates or banwave alerts on/off')
+      .addStringOption(opt => opt.setName('type').setDescription('What to toggle').setRequired(true).addChoices({ name: 'Updates', value: 'updates' }, { name: 'Banwaves', value: 'banwaves' }))
+      .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
+    new SlashCommandBuilder()
+      .setName('banwave')
+      .setDescription('Force send a test banwave alert to this server')
+      .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+  ];
+
+  const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN);
+  try {
+    await rest.put(Routes.applicationCommands(client.user.id), { body: commands });
+    console.log('[BOT] Slash commands registered.');
+  } catch (error) {
+    console.error(error);
+  }
+
   checkUpdates();
   setInterval(checkUpdates, POLL_INTERVAL);
 });
 
-// --- bot slash commands for setting channel/role from inside discord ---
+// --- INTERACTION HANDLER ---
 client.on('interactionCreate', async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
-  if (interaction.commandName === 'setchannel') {
+
+  const config = await getGuildConfig(interaction.guildId);
+
+  if (interaction.commandName === 'setup') {
     const channel = interaction.options.getChannel('channel');
-    const cfg = await getGuildConfig(interaction.guildId);
-    cfg.channel = channel.id;
-    await pool.query(
-      `INSERT INTO guild_configs (guild_id, config, updated_at)
-       VALUES ($1, $2, NOW())
-       ON CONFLICT (guild_id) DO UPDATE SET config = $2, updated_at = NOW()`,
-      [interaction.guildId, cfg]
-    );
-    await interaction.reply({ content: `alerts -> <#${channel.id}>`, ephemeral: true });
+    config.channel = channel.id;
+    await saveGuildConfig(interaction.guildId, config);
+    await interaction.reply({ content: `✅ Alerts will now be sent to <#${channel.id}>.`, ephemeral: true });
+  }
+
+  if (interaction.commandName === 'toggle') {
+    const type = interaction.options.getString('type');
+    const currentState = config[type] !== false;
+    config[type] = !currentState;
+    await saveGuildConfig(interaction.guildId, config);
+    await interaction.reply({ content: `✅ **${type}** alerts are now **${config[type] ? 'ON' : 'OFF'}**.`, ephemeral: true });
+  }
+
+  if (interaction.commandName === 'banwave') {
+    if (!config.channel) {
+      return interaction.reply({ content: '❌ You need to set a channel first. Use `/setup`.', ephemeral: true });
+    }
+    await interaction.deferReply({ ephemeral: true });
+    const embed = new EmbedBuilder()
+      .setTitle('⚠️ BANWAVE DETECTED')
+      .setDescription('This is a manual test alert triggered from Discord.')
+      .setColor('#ff3b5c')
+      .setTimestamp();
+    await sendToGuild(interaction.guildId, config, embed);
+    await interaction.editReply({ content: '✅ Test banwave sent!' });
   }
 });
 
+server.listen(process.env.PORT || 8080, () => {
+  console.log(`[HTTP] Control server on port ${process.env.PORT || 8080}`);
+});
 client.login(process.env.DISCORD_BOT_TOKEN);
