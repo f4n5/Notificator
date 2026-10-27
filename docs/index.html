@@ -126,4 +126,241 @@
         <h3>bot config locked</h3>
         <p>sign in with discord below, or set it up entirely inside your discord server using slash commands.</p>
         <a href="https://notificator-wq0r.onrender.com/auth/discord" class="discord-login-big">
-          <svg width="
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.291a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+          sign in with discord
+        </a>
+        <div class="discord-instruction">
+          <strong>🤖 Or use Discord:</strong> type <code>/setup</code> in your server to set the alert channel, and <code>/toggle</code> to turn alerts on/off.
+        </div>
+      </div>
+
+      <div id="settingsConfig" style="display: none;">
+        <div class="settings-header">
+          <div class="settings-title"><span class="discord-mark">⚙️</span> bot configuration</div>
+          <select class="guild-select" id="guildSelect">
+            <option value="">loading servers...</option>
+          </select>
+        </div>
+
+        <div class="settings-section">
+          <div class="section-label">🔔 notifications</div>
+          <div class="toggle-row">
+            <div class="toggle-info"><span class="toggle-name">update alerts</span><span class="toggle-desc">ping when roblox pushes a new client build</span></div>
+            <label class="switch"><input type="checkbox" id="tglUpdates" checked><span class="slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-info"><span class="toggle-name">banwave alerts</span><span class="toggle-desc">ping the moment a mass detection wave is detected</span></div>
+            <label class="switch"><input type="checkbox" id="tglBanwaves" checked><span class="slider"></span></label>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="section-label">📡 routing</div>
+          <div class="input-row">
+            <label for="channelInput">alert channel ID (right click channel -> copy ID)</label>
+            <input type="text" id="channelInput" placeholder="e.g. 123456789012345678">
+          </div>
+          <div class="input-row">
+            <label for="roleInput">ping role ID (or leave empty for @here)</label>
+            <input type="text" id="roleInput" placeholder="e.g. 123456789012345678">
+          </div>
+        </div>
+
+        <div class="save-bar">
+          <span class="save-status" id="saveStatus">✓ saved</span>
+          <button class="save-btn" id="saveConfigBtn">save config</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot">
+      <span>rbx watch · not affiliated with roblox corp</span>
+      <span class="ping"><span class="dot" style="background:#2ecc71; width:6px; height:6px; border-radius:50%; display:inline-block;"></span> system online</span>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      let currentUser = null;
+      let userGuilds = [];
+      const API_URL = 'https://notificator-wq0r.onrender.com'; 
+
+      const headRight = document.getElementById('headRight');
+      const settingsLocked = document.getElementById('settingsLocked');
+      const settingsConfig = document.getElementById('settingsConfig');
+      const guildSelect = document.getElementById('guildSelect');
+      const saveBtn = document.getElementById('saveConfigBtn');
+      const saveStatus = document.getElementById('saveStatus');
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+          btn.classList.add('active');
+          document.getElementById(`panel-${btn.dataset.tab}`).classList.add('active');
+        });
+      });
+
+      // --- CHECK AUTH & LOAD INFO ---
+      async function checkAuth() {
+        try {
+          const res = await fetch(`${API_URL}/api/me`, { credentials: 'include' });
+          if (!res.ok) throw new Error('Not logged in');
+          const data = await res.json();
+          
+          currentUser = data.user;
+          userGuilds = data.guilds;
+          
+          renderHeader();
+          unlockSettings();
+        } catch (err) {
+          renderHeader();
+          lockSettings();
+        }
+      }
+
+      // Function to simulate pulling new updates on the frontend
+      // (In a real app, you'd fetch an /api/status endpoint here)
+      function pollWebsiteInfo() {
+        console.log("[WEB] polling status...");
+        const updateList = document.getElementById('update-list');
+        
+        // Just adding a fake dynamic update card to show it's working every 5 mins
+        const now = new Date().toLocaleTimeString();
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="card-left">
+            <div class="card-title"><span>Status Ping</span><span class="pill update">update</span></div>
+            <div class="card-desc">Website synced at ${now}</div>
+          </div>
+          <div class="card-time">just now</div>
+        `;
+        updateList.prepend(card);
+        if (updateList.children.length > 4) updateList.lastChild.remove();
+      }
+
+      // Run immediately, then every 5 minutes
+      pollWebsiteInfo();
+      setInterval(pollWebsiteInfo, 300000); // 300000ms = 5 mins
+
+      function renderHeader() {
+        if (currentUser) {
+          headRight.innerHTML = `
+            <div class="badge"><span class="dot"></span> live · 2.4k online</div>
+            <div class="user-chip" id="logoutBtn" title="click to log out">
+              <div class="avatar">${currentUser.username[0].toUpperCase()}</div>
+              <div class="uname">${currentUser.username}</div>
+            </div>
+          `;
+          document.getElementById('logoutBtn').addEventListener('click', logout);
+        } else {
+          headRight.innerHTML = `
+            <div class="badge"><span class="dot"></span> live · 2.4k online</div>
+            <a href="${API_URL}/auth/discord" class="discord-btn">
+              <svg viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.291a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+              sign in
+            </a>
+          `;
+        }
+      }
+
+      async function logout() {
+        await fetch(`${API_URL}/api/logout`, { method: 'POST', credentials: 'include' });
+        window.location.reload();
+      }
+
+      function lockSettings() {
+        settingsLocked.style.display = 'flex';
+        settingsConfig.style.display = 'none';
+      }
+
+      function unlockSettings() {
+        settingsLocked.style.display = 'none';
+        settingsConfig.style.display = 'block';
+        
+        guildSelect.innerHTML = '';
+        if (userGuilds.length === 0) {
+          guildSelect.innerHTML = '<option value="">no admin servers found</option>';
+          return;
+        }
+        
+        userGuilds.forEach(g => {
+          const opt = document.createElement('option');
+          opt.value = g.id;
+          opt.textContent = g.name;
+          guildSelect.appendChild(opt);
+        });
+
+        loadConfig(userGuilds[0].id);
+      }
+
+      guildSelect.addEventListener('change', (e) => {
+        loadConfig(e.target.value);
+      });
+
+      async function loadConfig(guildId) {
+        if (!guildId) return;
+        try {
+          const res = await fetch(`${API_URL}/api/config/${guildId}`, { credentials: 'include' });
+          const config = await res.json();
+          
+          document.getElementById('tglUpdates').checked = config.updates !== false;
+          document.getElementById('tglBanwaves').checked = config.banwaves !== false;
+          document.getElementById('channelInput').value = config.channel || '';
+          document.getElementById('roleInput').value = config.role || '';
+        } catch (err) {
+          console.error('Failed to load config');
+        }
+      }
+
+      saveBtn.addEventListener('click', async () => {
+        const guildId = guildSelect.value;
+        if (!guildId) return alert('Select a server first');
+
+        const config = {
+          updates: document.getElementById('tglUpdates').checked,
+          banwaves: document.getElementById('tglBanwaves').checked,
+          channel: document.getElementById('channelInput').value.trim(),
+          role: document.getElementById('roleInput').value.trim() || 'none'
+        };
+
+        saveBtn.textContent = 'saving...';
+        saveBtn.disabled = true;
+
+        try {
+          const res = await fetch(`${API_URL}/api/config/${guildId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(config),
+            credentials: 'include'
+          });
+          
+          if (res.ok) {
+            saveStatus.classList.add('show');
+            setTimeout(() => saveStatus.classList.remove('show'), 2500);
+          } else {
+            alert('Failed to save. Session expired? Try logging in again.');
+          }
+        } catch (err) {
+          alert('Network error');
+        } finally {
+          saveBtn.textContent = 'save config';
+          saveBtn.disabled = false;
+        }
+      });
+
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('error') === 'rate_limited') {
+        alert('Discord is rate limiting the server IP. Please wait 10-15 mins and try again.');
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } else if (urlParams.get('error') === 'oauth_failed') {
+        alert('Login failed. Check the server logs.');
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+
+      checkAuth();
+    })();
+  </script>
+</body>
+</html>
