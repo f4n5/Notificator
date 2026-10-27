@@ -21,11 +21,17 @@ async function initDb() {
 }
 initDb().catch(err => console.error('db init failed:', err.message));
 
+// Middleware
 app.use(cors({ origin: 'https://f4n5.github.io', credentials: true }));
 app.use(express.json());
 
+// Session setup WITH the missing table fix
 app.use(session({
-  store: new PgSession({ pool, tableName: 'session' }),
+  store: new PgSession({ 
+    pool, 
+    tableName: 'session',
+    createTableIfMissing: true 
+  }),
   secret: process.env.SESSION_SECRET || 'fallback_secret',
   resave: false,
   saveUninitialized: false,
@@ -35,9 +41,8 @@ app.use(session({
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 const REDIRECT_URI = process.env.REDIRECT_URI;
-const BOT_URL = process.env.BOT_URL; // e.g. https://your-bot.bot-hosting.net
 
-// --- OAUTH & CONFIG ROUTES (Unchanged) ---
+// OAuth Routes
 app.get('/auth/discord', (req, res) => {
   const url = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=identify%20guilds`;
   res.redirect(url);
@@ -90,30 +95,6 @@ app.get('/api/config/:guildId', async (req, res) => {
     res.json(r.rows[0]?.config || {});
   } catch (err) { res.status(500).json({ error: 'load failed' }); }
 });
-
-// --- 5 MINUTE ROBLOX POLLER ---
-let lastVersion = null;
-async function checkRoblox() {
-  try {
-    const res = await axios.get('https://clientsettings.roblox.com/v2/client-version/WindowsPlayer/channel/LIVE', { timeout: 10000 });
-    const currentVersion = res.data.clientVersionUpload;
-
-    if (lastVersion && currentVersion !== lastVersion) {
-      console.log(`[POLLER] New version: ${currentVersion}. Pinging bot...`);
-      // Tell the bot a new update happened
-      await axios.post(`${BOT_URL}/update`, {
-        secret: process.env.WEBHOOK_SECRET,
-        version: currentVersion
-      }).catch(err => console.error('Bot ping failed:', err.message));
-    }
-    lastVersion = currentVersion;
-  } catch (err) {
-    console.error('[POLLER ERROR]', err.message);
-  }
-}
-// Run every 5 minutes (300000 ms)
-setInterval(checkRoblox, 300000);
-checkRoblox(); 
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`web on ${PORT}`));
