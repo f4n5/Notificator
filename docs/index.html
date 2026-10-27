@@ -78,6 +78,8 @@
     .locked-overlay h3 { font-size: 1.3rem; font-weight: 800; }
     .locked-overlay p { color: #7f93a6; max-width: 360px; line-height: 1.5; }
     .discord-login-big { display: flex; align-items: center; gap: 10px; background: #5865F2; color: #fff; border: none; padding: 0.9rem 2rem; border-radius: 60px; font-weight: 700; cursor: pointer; text-decoration: none; }
+    .discord-instruction { background: rgba(88, 101, 242, 0.1); border: 1px solid rgba(88, 101, 242, 0.3); padding: 1rem; border-radius: 16px; margin-top: 1rem; text-align: left; color: #b6c8d9; font-size: 0.9rem; }
+    .discord-instruction code { background: rgba(0,0,0,0.5); padding: 0.2rem 0.5rem; border-radius: 6px; color: #6bc8ff; font-family: monospace; }
     .foot { margin-top: 2.2rem; display: flex; justify-content: space-between; font-size: 0.8rem; color: #5f7282; border-top: 1px solid rgba(255, 255, 255, 0.04); padding-top: 1.5rem; }
     @media (max-width: 600px) { .app { padding: 1.5rem 1rem; } .banwave-title { font-size: 3rem; } .card { flex-direction: column; align-items: flex-start; } }
   </style>
@@ -122,11 +124,14 @@
       <div id="settingsLocked" class="locked-overlay">
         <div class="lock-icon">🔒</div>
         <h3>bot config locked</h3>
-        <p>sign in with discord to unlock server settings, channel routing, and ping configuration for the rbx watch bot.</p>
+        <p>sign in with discord below, or set it up entirely inside your discord server using slash commands.</p>
         <a href="https://notificator-wq0r.onrender.com/auth/discord" class="discord-login-big">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.291a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
           sign in with discord
         </a>
+        <div class="discord-instruction">
+          <strong>🤖 Or use Discord:</strong> type <code>/setup</code> in your server to set the alert channel, and <code>/toggle</code> to turn alerts on/off.
+        </div>
       </div>
 
       <div id="settingsConfig" style="display: none;">
@@ -319,7 +324,6 @@
         }
       });
 
-      // Handle error redirects
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('error') === 'rate_limited') {
         alert('Discord is rate limiting the server IP. Please wait 10-15 mins and try again.');
