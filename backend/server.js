@@ -4,6 +4,7 @@ const axios = require('axios');
 const session = require('express-session');
 const PgSession = require('connect-pg-simple')(session);
 const { Pool } = require('pg');
+const cors = require('cors'); // ADDED CORS
 const path = require('path');
 
 const app = express();
@@ -28,14 +29,27 @@ async function initDb() {
 initDb().catch(err => console.error('db init failed:', err.message));
 
 // Middleware
+// ALLOW CORS FROM ANYWHERE (or restrict it to your github pages URL)
+app.use(cors({
+  origin: true, // Reflects the request origin
+  credentials: true
+}));
 app.use(express.json());
+
+// Session setup
 app.use(session({
   store: new PgSession({ pool, tableName: 'session' }),
-  secret: process.env.SESSION_SECRET,
+  secret: process.env.SESSION_SECRET || 'fallback_secret_change_me',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: true, sameSite: 'lax', maxAge: 7 * 24 * 60 * 60 * 1000 }
+  cookie: { 
+    secure: true, 
+    sameSite: 'none', // Required for cross-domain cookies
+    maxAge: 7 * 24 * 60 * 60 * 1000 
+  }
 }));
+
+// Serve static files if you ever add them back
 app.use(express.static(path.join(__dirname, 'public')));
 
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID;
@@ -78,7 +92,9 @@ app.get('/auth/callback', async (req, res) => {
     // only guilds where user has MANAGE_GUILD (0x20)
     req.session.guilds = guildsRes.data.filter(g => (BigInt(g.permissions) & 0x20n) === 0x20n);
 
-    res.redirect('/dashboard.html');
+    // Redirect back to your HTML page! (Change this if your docs site is somewhere else)
+    // You can replace this with process.env.FRONTEND_URL if you want to be clean
+    res.redirect('https://f4n5.github.io/Notificator'); 
   } catch (err) {
     console.error(err.response?.data || err.message);
     res.status(500).send('oauth failed');
@@ -128,11 +144,5 @@ app.get('/api/config/:guildId', async (req, res) => {
   }
 });
 
-// Serve index.html for root
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`web on ${PORT}`));
