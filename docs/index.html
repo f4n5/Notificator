@@ -178,7 +178,6 @@
     (function() {
       let currentUser = null;
       let userGuilds = [];
-      // HARDCODED BACKEND URL
       const API_URL = 'https://notificator-wq0r.onrender.com'; 
 
       const headRight = document.getElementById('headRight');
@@ -199,7 +198,6 @@
 
       async function checkAuth() {
         try {
-          // Added credentials: 'include' for CORS
           const res = await fetch(`${API_URL}/api/me`, { credentials: 'include' });
           if (!res.ok) throw new Error('Not logged in');
           const data = await res.json();
@@ -311,7 +309,7 @@
             saveStatus.classList.add('show');
             setTimeout(() => saveStatus.classList.remove('show'), 2500);
           } else {
-            alert('Failed to save. Are you logged in?');
+            alert('Failed to save. Session expired? Try logging in again.');
           }
         } catch (err) {
           alert('Network error');
@@ -320,6 +318,16 @@
           saveBtn.disabled = false;
         }
       });
+
+      // Handle error redirects
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('error') === 'rate_limited') {
+        alert('Discord is rate limiting the server IP. Please wait 10-15 mins and try again.');
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } else if (urlParams.get('error') === 'oauth_failed') {
+        alert('Login failed. Check the server logs.');
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
 
       checkAuth();
     })();
