@@ -5,861 +5,82 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RBX WATCH — banwave & update radar + bot</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-    }
-
-    body {
-      background: #0a0c0f;
-      color: #eef2f5;
-      display: flex;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 1.5rem;
-      background-image: radial-gradient(circle at 20% 30%, rgba(0, 180, 255, 0.08) 0%, transparent 40%),
-                        radial-gradient(circle at 80% 70%, rgba(255, 40, 100, 0.08) 0%, transparent 40%);
-    }
-
-    .app {
-      max-width: 880px;
-      width: 100%;
-      background: rgba(16, 20, 26, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-radius: 40px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      padding: 2rem 2rem 2.5rem;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
-      transition: all 0.2s ease;
-    }
-
-    /* header */
-    .head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .logo-icon {
-      background: #ff3b5c;
-      width: 38px;
-      height: 38px;
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 1.4rem;
-      color: #0a0c0f;
-      box-shadow: 0 0 20px rgba(255, 59, 92, 0.5);
-      animation: pulse-glow 2.5s infinite alternate;
-    }
-
-    @keyframes pulse-glow {
-      0% { box-shadow: 0 0 15px rgba(255, 59, 92, 0.4); }
-      100% { box-shadow: 0 0 30px rgba(255, 59, 92, 0.9); }
-    }
-
-    .logo-text {
-      font-weight: 700;
-      font-size: 1.5rem;
-      letter-spacing: -0.02em;
-      background: linear-gradient(135deg, #ffffff 0%, #a0b4c8 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-
-    .head-right {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .badge {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      padding: 0.4rem 1rem;
-      border-radius: 40px;
-      font-size: 0.8rem;
-      font-weight: 500;
-      color: #9aaebf;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .badge .dot {
-      width: 8px;
-      height: 8px;
-      background: #2ecc71;
-      border-radius: 50%;
-      box-shadow: 0 0 12px #2ecc71;
-      animation: blink 1.4s infinite;
-    }
-
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
-    }
-
-    /* discord login btn */
-    .discord-btn {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: #5865F2;
-      color: #fff;
-      border: none;
-      padding: 0.6rem 1.2rem;
-      border-radius: 60px;
-      font-weight: 700;
-      font-size: 0.85rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 16px rgba(88, 101, 242, 0.3);
-      white-space: nowrap;
-    }
-
-    .discord-btn:hover {
-      background: #4752c4;
-      transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(88, 101, 242, 0.5);
-    }
-
-    .discord-btn:active {
-      transform: translateY(0);
-    }
-
-    .discord-btn svg {
-      width: 18px;
-      height: 18px;
-      fill: currentColor;
-    }
-
-    .user-chip {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      padding: 0.35rem 1rem 0.35rem 0.5rem;
-      border-radius: 60px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .user-chip:hover {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(255, 255, 255, 0.15);
-    }
-
-    .user-chip .avatar {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #5865F2, #ff3b5c);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 0.8rem;
-      color: #fff;
-    }
-
-    .user-chip .uname {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #e0e9f0;
-    }
-
-    .user-chip .udisc {
-      font-size: 0.7rem;
-      color: #7f93a6;
-    }
-
-    /* BANWAVE ALERT */
-    .banwave-alert {
-      background: linear-gradient(135deg, #1a0b10 0%, #2e0f1a 100%);
-      border: 1px solid rgba(255, 60, 100, 0.3);
-      border-radius: 32px;
-      padding: 2rem 2rem 1.8rem;
-      margin-bottom: 2rem;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 0 60px rgba(255, 40, 90, 0.2);
-      animation: border-pulse 2s infinite alternate;
-    }
-
-    @keyframes border-pulse {
-      0% { border-color: rgba(255, 60, 100, 0.25); box-shadow: 0 0 40px rgba(255, 40, 90, 0.1); }
-      100% { border-color: rgba(255, 60, 100, 0.8); box-shadow: 0 0 80px rgba(255, 40, 90, 0.4); }
-    }
-
-    .banwave-alert::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -20%;
-      width: 60%;
-      height: 200%;
-      background: radial-gradient(circle, rgba(255, 40, 100, 0.15) 0%, transparent 70%);
-      transform: rotate(25deg);
-      pointer-events: none;
-    }
-
-    .banwave-label {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 0.6rem;
-    }
-
-    .banwave-label span {
-      background: #ff3b5c;
-      color: #0a0c0f;
-      font-weight: 800;
-      font-size: 0.9rem;
-      padding: 0.3rem 1.2rem;
-      border-radius: 100px;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      box-shadow: 0 0 24px rgba(255, 59, 92, 0.7);
-      animation: shake 0.4s infinite alternate;
-    }
-
-    @keyframes shake {
-      0% { transform: rotate(-1deg); }
-      100% { transform: rotate(1deg); }
-    }
-
-    .banwave-title {
-      font-size: clamp(2.8rem, 10vw, 5.2rem);
-      font-weight: 900;
-      line-height: 1;
-      letter-spacing: -0.03em;
-      text-transform: uppercase;
-      background: linear-gradient(135deg, #ff4d6d 0%, #ff9a5c 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      text-shadow: 0 0 40px rgba(255, 60, 100, 0.5);
-      animation: glitch 3s infinite;
-      display: inline-block;
-    }
-
-    @keyframes glitch {
-      0%, 90%, 100% { transform: translate(0); opacity: 1; }
-      92% { transform: translate(-3px, 2px); opacity: 0.9; }
-      94% { transform: translate(4px, -2px); opacity: 0.95; }
-      96% { transform: translate(-2px, -1px); opacity: 0.9; }
-      98% { transform: translate(3px, 1px); opacity: 1; }
-    }
-
-    .banwave-sub {
-      font-size: 1.1rem;
-      color: #b6c8d9;
-      margin-top: 0.6rem;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .banwave-sub .highlight {
-      color: #ff6b87;
-      font-weight: 700;
-      background: rgba(255, 60, 100, 0.12);
-      padding: 0.15rem 0.8rem;
-      border-radius: 40px;
-      border: 1px solid rgba(255, 60, 100, 0.25);
-    }
-
-    .countdown {
-      background: rgba(0, 0, 0, 0.5);
-      border-radius: 16px;
-      padding: 0.8rem 1.2rem;
-      margin-top: 1.2rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      font-weight: 600;
-    }
-
-    .countdown .num {
-      font-size: 1.8rem;
-      font-weight: 800;
-      color: #ff6b87;
-      letter-spacing: -0.02em;
-      min-width: 3rem;
-      text-align: center;
-    }
-
-    .countdown .unit {
-      font-size: 0.8rem;
-      color: #7a8e9e;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    /* tabs */
-    .tabs {
-      display: flex;
-      gap: 0.4rem;
-      background: rgba(0, 0, 0, 0.3);
-      padding: 0.4rem;
-      border-radius: 60px;
-      margin-bottom: 1.8rem;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    .tab-btn {
-      flex: 1;
-      background: transparent;
-      border: none;
-      color: #7f93a6;
-      font-weight: 600;
-      font-size: 0.95rem;
-      padding: 0.8rem 1rem;
-      border-radius: 50px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      letter-spacing: -0.01em;
-    }
-
-    .tab-btn:hover {
-      color: #e0e9f0;
-      background: rgba(255, 255, 255, 0.03);
-    }
-
-    .tab-btn.active {
-      background: #ffffff;
-      color: #0a0c0f;
-      box-shadow: 0 4px 16px rgba(255, 255, 255, 0.1);
-    }
-
-    .tab-btn .icon {
-      font-size: 1.2rem;
-    }
-
-    /* panels */
-    .panel {
-      display: none;
-      animation: fadeUp 0.3s ease forwards;
-    }
-
-    .panel.active {
-      display: block;
-    }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* cards */
-    .card-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.8rem;
-    }
-
-    .card {
-      background: rgba(255, 255, 255, 0.025);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 22px;
-      padding: 1.4rem 1.6rem;
-      transition: all 0.2s ease;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 0.8rem;
-      cursor: default;
-    }
-
-    .card:hover {
-      background: rgba(255, 255, 255, 0.04);
-      border-color: rgba(255, 255, 255, 0.12);
-      transform: translateY(-2px);
-    }
-
-    .card-left {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .card-title {
-      font-weight: 700;
-      font-size: 1.1rem;
-      letter-spacing: -0.01em;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .pill {
-      font-size: 0.7rem;
-      font-weight: 700;
-      padding: 0.25rem 0.8rem;
-      border-radius: 40px;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-
-    .pill.ban {
-      background: rgba(255, 60, 100, 0.2);
-      color: #ff6b87;
-      border: 1px solid rgba(255, 60, 100, 0.4);
-    }
-
-    .pill.update {
-      background: rgba(60, 200, 255, 0.15);
-      color: #6bc8ff;
-      border: 1px solid rgba(60, 200, 255, 0.3);
-    }
-
-    .pill.future {
-      background: rgba(255, 200, 60, 0.15);
-      color: #ffd966;
-      border: 1px solid rgba(255, 200, 60, 0.3);
-    }
-
-    .card-desc {
-      color: #94a9bb;
-      font-size: 0.9rem;
-    }
-
-    .card-time {
-      font-weight: 600;
-      font-size: 0.9rem;
-      color: #a0b8cc;
-      background: rgba(0, 0, 0, 0.3);
-      padding: 0.4rem 1rem;
-      border-radius: 60px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      white-space: nowrap;
-    }
-
-    /* FAQ */
-    .faq-item {
-      background: rgba(255, 255, 255, 0.025);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 20px;
-      padding: 0.2rem 0;
-      margin-bottom: 0.7rem;
-      transition: all 0.2s ease;
-      overflow: hidden;
-    }
-
-    .faq-q {
-      padding: 1.2rem 1.5rem;
-      font-weight: 600;
-      font-size: 1rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-      color: #e0e9f0;
-      transition: background 0.2s;
-      user-select: none;
-    }
-
-    .faq-q:hover {
-      background: rgba(255, 255, 255, 0.02);
-    }
-
-    .faq-q .arrow {
-      font-size: 1.2rem;
-      color: #7f93a6;
-      transition: transform 0.25s ease;
-    }
-
-    .faq-item.open .faq-q .arrow {
-      transform: rotate(180deg);
-    }
-
-    .faq-a {
-      max-height: 0;
-      padding: 0 1.5rem;
-      color: #94a9bb;
-      font-size: 0.95rem;
-      line-height: 1.6;
-      transition: max-height 0.35s ease, padding 0.2s ease;
-      overflow: hidden;
-      border-top: 1px solid transparent;
-    }
-
-    .faq-item.open .faq-a {
-      max-height: 200px;
-      padding: 0 1.5rem 1.4rem 1.5rem;
-      border-top-color: rgba(255, 255, 255, 0.04);
-    }
-
-    /* ===== SETTINGS PANEL (bot config) ===== */
-    .settings-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.2rem;
-      flex-wrap: wrap;
-      gap: 0.6rem;
-    }
-
-    .settings-title {
-      font-size: 1.3rem;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .settings-title .discord-mark {
-      color: #5865F2;
-    }
-
-    .guild-select {
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: #e0e9f0;
-      padding: 0.5rem 1rem;
-      border-radius: 40px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      outline: none;
-      transition: all 0.2s;
-    }
-
-    .guild-select:hover, .guild-select:focus {
-      border-color: rgba(255, 255, 255, 0.25);
-      background: rgba(0, 0, 0, 0.6);
-    }
-
-    .settings-section {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 24px;
-      padding: 1.2rem 1.5rem;
-      margin-bottom: 1rem;
-    }
-
-    .section-label {
-      font-size: 0.75rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #7f93a6;
-      margin-bottom: 0.8rem;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .toggle-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.8rem 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-      gap: 1rem;
-    }
-
-    .toggle-row:last-child {
-      border-bottom: none;
-      padding-bottom: 0;
-    }
-
-    .toggle-row:first-of-type {
-      padding-top: 0;
-    }
-
-    .toggle-info {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .toggle-name {
-      font-weight: 600;
-      font-size: 0.95rem;
-      color: #e0e9f0;
-    }
-
-    .toggle-desc {
-      font-size: 0.8rem;
-      color: #7f93a6;
-    }
-
-    .switch {
-      position: relative;
-      width: 48px;
-      height: 26px;
-      flex-shrink: 0;
-    }
-
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 40px;
-      transition: 0.25s ease;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    .slider::before {
-      position: absolute;
-      content: '';
-      height: 18px;
-      width: 18px;
-      left: 4px;
-      bottom: 3px;
-      background: #7f93a6;
-      border-radius: 50%;
-      transition: 0.25s ease;
-    }
-
-    .switch input:checked + .slider {
-      background: #5865F2;
-      border-color: #5865F2;
-      box-shadow: 0 0 16px rgba(88, 101, 242, 0.4);
-    }
-
-    .switch input:checked + .slider::before {
-      transform: translateX(22px);
-      background: #fff;
-    }
-
-    .input-row {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      padding: 0.6rem 0;
-    }
-
-    .input-row label {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #a0b8cc;
-    }
-
-    .input-row input, .input-row select {
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 14px;
-      padding: 0.65rem 1rem;
-      color: #e0e9f0;
-      font-size: 0.9rem;
-      font-family: inherit;
-      outline: none;
-      transition: border 0.2s;
-    }
-
-    .input-row input:focus, .input-row select:focus {
-      border-color: #5865F2;
-      box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.15);
-    }
-
-    .save-bar {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      gap: 1rem;
-      margin-top: 1.5rem;
-      flex-wrap: wrap;
-    }
-
-    .save-status {
-      font-size: 0.8rem;
-      color: #2ecc71;
-      font-weight: 600;
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-
-    .save-status.show {
-      opacity: 1;
-    }
-
-    .save-btn {
-      background: #5865F2;
-      color: #fff;
-      border: none;
-      padding: 0.7rem 2rem;
-      border-radius: 60px;
-      font-weight: 700;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      box-shadow: 0 4px 16px rgba(88, 101, 242, 0.3);
-    }
-
-    .save-btn:hover {
-      background: #4752c4;
-      transform: translateY(-1px);
-      box-shadow: 0 6px 22px rgba(88, 101, 242, 0.5);
-    }
-
-    .save-btn:active {
-      transform: translateY(0);
-    }
-
-    /* locked state for settings */
-    .locked-overlay {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 3rem 1rem;
-      text-align: center;
-      gap: 1rem;
-    }
-
-    .locked-overlay .lock-icon {
-      font-size: 3rem;
-      opacity: 0.3;
-    }
-
-    .locked-overlay h3 {
-      font-size: 1.3rem;
-      font-weight: 800;
-      color: #e0e9f0;
-    }
-
-    .locked-overlay p {
-      color: #7f93a6;
-      font-size: 0.95rem;
-      max-width: 360px;
-      line-height: 1.5;
-    }
-
-    .discord-login-big {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: #5865F2;
-      color: #fff;
-      border: none;
-      padding: 0.9rem 2rem;
-      border-radius: 60px;
-      font-weight: 700;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      box-shadow: 0 4px 20px rgba(88, 101, 242, 0.4);
-      margin-top: 0.5rem;
-    }
-
-    .discord-login-big:hover {
-      background: #4752c4;
-      transform: translateY(-2px);
-      box-shadow: 0 8px 28px rgba(88, 101, 242, 0.6);
-    }
-
-    .discord-login-big svg {
-      width: 22px;
-      height: 22px;
-      fill: currentColor;
-    }
-
-    /* footer */
-    .foot {
-      margin-top: 2.2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.8rem;
-      color: #5f7282;
-      border-top: 1px solid rgba(255, 255, 255, 0.04);
-      padding-top: 1.5rem;
-      flex-wrap: wrap;
-      gap: 0.8rem;
-    }
-
-    .foot .ping {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .foot .ping .dot {
-      width: 6px;
-      height: 6px;
-      background: #2ecc71;
-      border-radius: 50%;
-      box-shadow: 0 0 10px #2ecc71;
-    }
-
-    /* toast */
-    .toast {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      background: #1c232b;
-      border: 1px solid rgba(255, 60, 100, 0.3);
-      border-radius: 18px;
-      padding: 1rem 1.6rem;
-      color: white;
-      font-weight: 600;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      transform: translateY(120%);
-      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-      z-index: 999;
-      pointer-events: none;
-      backdrop-filter: blur(10px);
-    }
-
-    .toast.show {
-      transform: translateY(0);
-    }
-
-    .toast .bell {
-      font-size: 1.6rem;
-    }
-
-    /* responsive */
-    @media (max-width: 600px) {
-      .app { padding: 1.5rem 1rem; }
-      .tab-btn { font-size: 0.8rem; padding: 0.7rem 0.4rem; gap: 4px; }
-      .tab-btn .icon { font-size: 1rem; }
-      .banwave-title { font-size: 3rem; }
-      .card { flex-direction: column; align-items: flex-start; }
-      .head { flex-direction: column; align-items: flex-start; }
-      .settings-section { padding: 1rem; }
-    }
+    /* CSS stays exactly the same, it's fire */
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    body { background: #0a0c0f; color: #eef2f5; display: flex; justify-content: center; min-height: 100vh; padding: 1.5rem; background-image: radial-gradient(circle at 20% 30%, rgba(0, 180, 255, 0.08) 0%, transparent 40%), radial-gradient(circle at 80% 70%, rgba(255, 40, 100, 0.08) 0%, transparent 40%); }
+    .app { max-width: 880px; width: 100%; background: rgba(16, 20, 26, 0.85); backdrop-filter: blur(12px); border-radius: 40px; border: 1px solid rgba(255, 255, 255, 0.06); padding: 2rem 2rem 2.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8); }
+    .head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo-icon { background: #ff3b5c; width: 38px; height: 38px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.4rem; color: #0a0c0f; box-shadow: 0 0 20px rgba(255, 59, 92, 0.5); animation: pulse-glow 2.5s infinite alternate; }
+    @keyframes pulse-glow { 0% { box-shadow: 0 0 15px rgba(255, 59, 92, 0.4); } 100% { box-shadow: 0 0 30px rgba(255, 59, 92, 0.9); } }
+    .logo-text { font-weight: 700; font-size: 1.5rem; background: linear-gradient(135deg, #ffffff 0%, #a0b4c8 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .head-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .badge { background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); padding: 0.4rem 1rem; border-radius: 40px; font-size: 0.8rem; font-weight: 500; color: #9aaebf; display: flex; align-items: center; gap: 6px; }
+    .badge .dot { width: 8px; height: 8px; background: #2ecc71; border-radius: 50%; box-shadow: 0 0 12px #2ecc71; animation: blink 1.4s infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .discord-btn { display: flex; align-items: center; gap: 8px; background: #5865F2; color: #fff; border: none; padding: 0.6rem 1.2rem; border-radius: 60px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 16px rgba(88, 101, 242, 0.3); white-space: nowrap; text-decoration: none; }
+    .discord-btn:hover { background: #4752c4; transform: translateY(-1px); }
+    .discord-btn svg { width: 18px; height: 18px; fill: currentColor; }
+    .user-chip { display: flex; align-items: center; gap: 10px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); padding: 0.35rem 1rem 0.35rem 0.5rem; border-radius: 60px; cursor: pointer; transition: all 0.2s ease; }
+    .user-chip:hover { background: rgba(255, 255, 255, 0.08); }
+    .user-chip .avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #5865F2, #ff3b5c); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem; color: #fff; }
+    .user-chip .uname { font-size: 0.85rem; font-weight: 600; color: #e0e9f0; }
+    .banwave-alert { background: linear-gradient(135deg, #1a0b10 0%, #2e0f1a 100%); border: 1px solid rgba(255, 60, 100, 0.3); border-radius: 32px; padding: 2rem; margin-bottom: 2rem; position: relative; overflow: hidden; animation: border-pulse 2s infinite alternate; }
+    @keyframes border-pulse { 0% { border-color: rgba(255, 60, 100, 0.25); box-shadow: 0 0 40px rgba(255, 40, 90, 0.1); } 100% { border-color: rgba(255, 60, 100, 0.8); box-shadow: 0 0 80px rgba(255, 40, 90, 0.4); } }
+    .banwave-label span { background: #ff3b5c; color: #0a0c0f; font-weight: 800; font-size: 0.9rem; padding: 0.3rem 1.2rem; border-radius: 100px; text-transform: uppercase; box-shadow: 0 0 24px rgba(255, 59, 92, 0.7); animation: shake 0.4s infinite alternate; display: inline-block; margin-bottom: 10px; }
+    @keyframes shake { 0% { transform: rotate(-1deg); } 100% { transform: rotate(1deg); } }
+    .banwave-title { font-size: clamp(2.8rem, 10vw, 5.2rem); font-weight: 900; text-transform: uppercase; background: linear-gradient(135deg, #ff4d6d 0%, #ff9a5c 100%); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: 0 0 40px rgba(255, 60, 100, 0.5); animation: glitch 3s infinite; }
+    @keyframes glitch { 0%, 90%, 100% { transform: translate(0); opacity: 1; } 92% { transform: translate(-3px, 2px); } 94% { transform: translate(4px, -2px); } 96% { transform: translate(-2px, -1px); } 98% { transform: translate(3px, 1px); } }
+    .banwave-sub { font-size: 1.1rem; color: #b6c8d9; margin-top: 0.6rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .banwave-sub .highlight { color: #ff6b87; font-weight: 700; background: rgba(255, 60, 100, 0.12); padding: 0.15rem 0.8rem; border-radius: 40px; border: 1px solid rgba(255, 60, 100, 0.25); }
+    .tabs { display: flex; gap: 0.4rem; background: rgba(0, 0, 0, 0.3); padding: 0.4rem; border-radius: 60px; margin-bottom: 1.8rem; border: 1px solid rgba(255, 255, 255, 0.05); }
+    .tab-btn { flex: 1; background: transparent; border: none; color: #7f93a6; font-weight: 600; font-size: 0.95rem; padding: 0.8rem 1rem; border-radius: 50px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .tab-btn:hover { color: #e0e9f0; background: rgba(255, 255, 255, 0.03); }
+    .tab-btn.active { background: #ffffff; color: #0a0c0f; box-shadow: 0 4px 16px rgba(255, 255, 255, 0.1); }
+    .panel { display: none; animation: fadeUp 0.3s ease forwards; }
+    .panel.active { display: block; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .card-list { display: flex; flex-direction: column; gap: 0.8rem; }
+    .card { background: rgba(255, 255, 255, 0.025); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 22px; padding: 1.4rem 1.6rem; transition: all 0.2s ease; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; }
+    .card:hover { background: rgba(255, 255, 255, 0.04); transform: translateY(-2px); }
+    .card-title { font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
+    .pill { font-size: 0.7rem; font-weight: 700; padding: 0.25rem 0.8rem; border-radius: 40px; text-transform: uppercase; }
+    .pill.ban { background: rgba(255, 60, 100, 0.2); color: #ff6b87; border: 1px solid rgba(255, 60, 100, 0.4); }
+    .pill.update { background: rgba(60, 200, 255, 0.15); color: #6bc8ff; border: 1px solid rgba(60, 200, 255, 0.3); }
+    .card-desc { color: #94a9bb; font-size: 0.9rem; }
+    .card-time { font-weight: 600; font-size: 0.9rem; color: #a0b8cc; background: rgba(0, 0, 0, 0.3); padding: 0.4rem 1rem; border-radius: 60px; white-space: nowrap; }
+    .settings-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 0.6rem; }
+    .settings-title { font-size: 1.3rem; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+    .guild-select { background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); color: #e0e9f0; padding: 0.5rem 1rem; border-radius: 40px; font-size: 0.85rem; font-weight: 600; cursor: pointer; outline: none; }
+    .guild-select:hover { border-color: rgba(255, 255, 255, 0.25); }
+    .settings-section { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 24px; padding: 1.2rem 1.5rem; margin-bottom: 1rem; }
+    .section-label { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #7f93a6; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 8px; }
+    .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 0; border-bottom: 1px solid rgba(255, 255, 255, 0.04); gap: 1rem; }
+    .toggle-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .toggle-name { font-weight: 600; font-size: 0.95rem; color: #e0e9f0; }
+    .toggle-desc { font-size: 0.8rem; color: #7f93a6; }
+    .switch { position: relative; width: 48px; height: 26px; flex-shrink: 0; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255, 255, 255, 0.1); border-radius: 40px; transition: 0.25s ease; }
+    .slider::before { position: absolute; content: ''; height: 18px; width: 18px; left: 4px; bottom: 3px; background: #7f93a6; border-radius: 50%; transition: 0.25s ease; }
+    .switch input:checked + .slider { background: #5865F2; }
+    .switch input:checked + .slider::before { transform: translateX(22px); background: #fff; }
+    .input-row { display: flex; flex-direction: column; gap: 6px; padding: 0.6rem 0; }
+    .input-row label { font-size: 0.85rem; font-weight: 600; color: #a0b8cc; }
+    .input-row input { background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; padding: 0.65rem 1rem; color: #e0e9f0; font-size: 0.9rem; outline: none; }
+    .input-row input:focus { border-color: #5865F2; }
+    .save-bar { display: flex; justify-content: flex-end; align-items: center; gap: 1rem; margin-top: 1.5rem; }
+    .save-status { font-size: 0.8rem; color: #2ecc71; font-weight: 600; opacity: 0; transition: opacity 0.3s; }
+    .save-status.show { opacity: 1; }
+    .save-btn { background: #5865F2; color: #fff; border: none; padding: 0.7rem 2rem; border-radius: 60px; font-weight: 700; font-size: 0.9rem; cursor: pointer; }
+    .save-btn:hover { background: #4752c4; }
+    .locked-overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem 1rem; text-align: center; gap: 1rem; }
+    .locked-overlay .lock-icon { font-size: 3rem; opacity: 0.3; }
+    .locked-overlay h3 { font-size: 1.3rem; font-weight: 800; }
+    .locked-overlay p { color: #7f93a6; max-width: 360px; line-height: 1.5; }
+    .discord-login-big { display: flex; align-items: center; gap: 10px; background: #5865F2; color: #fff; border: none; padding: 0.9rem 2rem; border-radius: 60px; font-weight: 700; cursor: pointer; text-decoration: none; }
+    .foot { margin-top: 2.2rem; display: flex; justify-content: space-between; font-size: 0.8rem; color: #5f7282; border-top: 1px solid rgba(255, 255, 255, 0.04); padding-top: 1.5rem; }
+    @media (max-width: 600px) { .app { padding: 1.5rem 1rem; } .banwave-title { font-size: 3rem; } .card { flex-direction: column; align-items: flex-start; } }
   </style>
 </head>
 <body>
@@ -871,305 +92,81 @@
         <div class="logo-text">RBX WATCH</div>
       </div>
       <div class="head-right" id="headRight">
-        <div class="badge">
-          <span class="dot"></span> live · 2.4k online
-        </div>
-        <!-- discord login button injected here -->
-        <button class="discord-btn" id="discordLoginBtn">
-          <svg viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.291a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
-          sign in with discord
-        </button>
+        <!-- JS will inject login button or user chip here -->
+        <div class="badge"><span class="dot"></span> connecting...</div>
       </div>
     </div>
 
     <!-- banwave alert -->
     <div class="banwave-alert">
-      <div class="banwave-label">
-        <span>⚠️ BANWAVE DETECTED</span>
-      </div>
-      <div class="banwave-title">
-        BANWAVE
-      </div>
-      <div class="banwave-sub">
-        mass detection event · <span class="highlight">high risk</span> · byfron / hyperion
-      </div>
-      <div class="countdown">
-        <span class="num" id="countdownNum">04</span>
-        <span class="unit">hrs</span>
-        <span class="num" id="countdownMin">32</span>
-        <span class="unit">min</span>
-        <span class="num" id="countdownSec">18</span>
-        <span class="unit">sec</span>
-        <span style="color:#7a8e9e; font-weight:400; margin-left:8px;">est. wave</span>
-      </div>
+      <div class="banwave-label"><span>⚠️ BANWAVE DETECTED</span></div>
+      <div class="banwave-title">BANWAVE</div>
+      <div class="banwave-sub">mass detection event · <span class="highlight">high risk</span> · byfron / hyperion</div>
     </div>
 
     <!-- tabs -->
     <div class="tabs">
-      <button class="tab-btn active" data-tab="updates">
-        <span class="icon">🔄</span> updates
-      </button>
-      <button class="tab-btn" data-tab="banwaves">
-        <span class="icon">⛔</span> banwaves
-      </button>
-      <button class="tab-btn" data-tab="faq">
-        <span class="icon">❓</span> faq
-      </button>
-      <button class="tab-btn" data-tab="settings" id="settingsTab">
-        <span class="icon">⚙️</span> bot config
-      </button>
+      <button class="tab-btn active" data-tab="updates"><span class="icon">🔄</span> updates</button>
+      <button class="tab-btn" data-tab="banwaves"><span class="icon">⛔</span> banwaves</button>
+      <button class="tab-btn" data-tab="settings"><span class="icon">⚙️</span> bot config</button>
     </div>
 
     <!-- panels -->
     <div class="panel active" id="panel-updates">
       <div class="card-list">
-        <div class="card">
-          <div class="card-left">
-            <div class="card-title">
-              <span>Roblox client v0.621.2</span>
-              <span class="pill update">update</span>
-            </div>
-            <div class="card-desc">byfron hyperion kernel patch · offset changes</div>
-          </div>
-          <div class="card-time">2h ago</div>
-        </div>
-        <div class="card">
-          <div class="card-left">
-            <div class="card-title">
-              <span>Anti-cheat silent patch</span>
-              <span class="pill update">update</span>
-            </div>
-            <div class="card-desc">new heuristic detection on memory scanners</div>
-          </div>
-          <div class="card-time">6h ago</div>
-        </div>
-        <div class="card">
-          <div class="card-left">
-            <div class="card-title">
-              <span>Future: v0.623.0 (est.)</span>
-              <span class="pill future">future</span>
-            </div>
-            <div class="card-desc">rolling out in ~3 days · expect netvar shifts</div>
-          </div>
-          <div class="card-time">in 3d</div>
-        </div>
+        <div class="card"><div class="card-left"><div class="card-title"><span>Roblox client v0.621.2</span><span class="pill update">update</span></div><div class="card-desc">byfron hyperion kernel patch</div></div><div class="card-time">2h ago</div></div>
       </div>
     </div>
 
     <div class="panel" id="panel-banwaves">
       <div class="card-list">
-        <div class="card">
-          <div class="card-left">
-            <div class="card-title">
-              <span>Mass banwave — executor users</span>
-              <span class="pill ban">banwave</span>
-            </div>
-            <div class="card-desc">detection on injection signatures · 12k+ banned</div>
-          </div>
-          <div class="card-time">1h ago</div>
-        </div>
-        <div class="card">
-          <div class="card-left">
-            <div class="card-title">
-              <span>HWID flagging — byfron hyperion</span>
-              <span class="pill ban">banwave</span>
-            </div>
-            <div class="card-desc">hardware fingerprint collection active</div>
-          </div>
-          <div class="card-time">4h ago</div>
-        </div>
-        <div class="card">
-          <div class="card-left">
-            <div class="card-title">
-              <span>Future banwave (est.)</span>
-              <span class="pill future">future</span>
-            </div>
-            <div class="card-desc">scheduled sweep · manual review + auto</div>
-          </div>
-          <div class="card-time">in 2d</div>
-        </div>
+        <div class="card"><div class="card-left"><div class="card-title"><span>Mass banwave — executor users</span><span class="pill ban">banwave</span></div><div class="card-desc">detection on injection signatures</div></div><div class="card-time">1h ago</div></div>
       </div>
     </div>
 
-    <div class="panel" id="panel-faq">
-      <div class="faq-item">
-        <div class="faq-q">
-          what is a banwave?
-          <span class="arrow">⌵</span>
-        </div>
-        <div class="faq-a">
-          a mass detection event where roblox anti-cheat flags and bans a large number of accounts at once. usually triggered by a new detection signature or heuristic.
-        </div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q">
-          how do i get notified?
-          <span class="arrow">⌵</span>
-        </div>
-        <div class="faq-a">
-          enable browser notifications (click the bell icon / allow notifications when prompted). we push an alert the moment a banwave or update is detected. also — sign in with discord and configure the bot to get pings in your server.
-        </div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q">
-          are future updates guaranteed?
-          <span class="arrow">⌵</span>
-        </div>
-        <div class="faq-a">
-          no — estimated dates are based on historical rollout patterns. treat them as a heads-up, not a promise.
-        </div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q">
-          how does the discord bot work?
-          <span class="arrow">⌵</span>
-        </div>
-        <div class="faq-a">
-          the bot runs 24/7, polls roblox update endpoints and community banwave reports, then pushes messages to the channels you configure. sign in with discord, pick a server, and set your channel + role pings.
-        </div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q">
-          can i get banned for watching?
-          <span class="arrow">⌵</span>
-        </div>
-        <div class="faq-a">
-          no. this is a public notification page. no account data is collected. you're just reading.
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== SETTINGS PANEL (bot config) ===== -->
+    <!-- ===== SETTINGS PANEL ===== -->
     <div class="panel" id="panel-settings">
-      <!-- locked state -->
+      <!-- Locked state -->
       <div id="settingsLocked" class="locked-overlay">
         <div class="lock-icon">🔒</div>
         <h3>bot config locked</h3>
         <p>sign in with discord to unlock server settings, channel routing, and ping configuration for the rbx watch bot.</p>
-        <button class="discord-login-big" id="discordLoginBig">
-          <svg viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.291a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+        <a href="/auth/discord" class="discord-login-big">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.291a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
           sign in with discord
-        </button>
+        </a>
       </div>
 
-      <!-- unlocked config -->
+      <!-- Unlocked config -->
       <div id="settingsConfig" style="display: none;">
         <div class="settings-header">
-          <div class="settings-title">
-            <span class="discord-mark">⚙️</span> bot configuration
-          </div>
+          <div class="settings-title"><span class="discord-mark">⚙️</span> bot configuration</div>
           <select class="guild-select" id="guildSelect">
-            <option value="g1">rbx watch hq</option>
-            <option value="g2">cheat dev lounge</option>
-            <option value="g3">banwave alerts</option>
+            <option value="">loading servers...</option>
           </select>
         </div>
 
-        <!-- notifications section -->
         <div class="settings-section">
           <div class="section-label">🔔 notifications</div>
           <div class="toggle-row">
-            <div class="toggle-info">
-              <span class="toggle-name">update alerts</span>
-              <span class="toggle-desc">ping when roblox pushes a new client build</span>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="tglUpdates" checked>
-              <span class="slider"></span>
-            </label>
+            <div class="toggle-info"><span class="toggle-name">update alerts</span><span class="toggle-desc">ping when roblox pushes a new client build</span></div>
+            <label class="switch"><input type="checkbox" id="tglUpdates" checked><span class="slider"></span></label>
           </div>
           <div class="toggle-row">
-            <div class="toggle-info">
-              <span class="toggle-name">banwave alerts</span>
-              <span class="toggle-desc">ping the moment a mass detection wave is detected</span>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="tglBanwaves" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="toggle-row">
-            <div class="toggle-info">
-              <span class="toggle-name">future update previews</span>
-              <span class="toggle-desc">estimated rollout dates for upcoming builds</span>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="tglFuture" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="toggle-row">
-            <div class="toggle-info">
-              <span class="toggle-name">hwid flag warnings</span>
-              <span class="toggle-desc">alert when byfron starts fingerprinting hardware</span>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="tglHwid">
-              <span class="slider"></span>
-            </label>
+            <div class="toggle-info"><span class="toggle-name">banwave alerts</span><span class="toggle-desc">ping the moment a mass detection wave is detected</span></div>
+            <label class="switch"><input type="checkbox" id="tglBanwaves" checked><span class="slider"></span></label>
           </div>
         </div>
 
-        <!-- channel + role routing -->
         <div class="settings-section">
           <div class="section-label">📡 routing</div>
           <div class="input-row">
-            <label for="channelInput">alert channel</label>
-            <select id="channelInput">
-              <option value="c1">#banwave-alerts</option>
-              <option value="c2">#rbx-updates</option>
-              <option value="c3">#general</option>
-              <option value="c4">#bot-spam</option>
-            </select>
+            <label for="channelInput">alert channel ID (right click channel -> copy ID)</label>
+            <input type="text" id="channelInput" placeholder="e.g. 123456789012345678">
           </div>
           <div class="input-row">
-            <label for="roleInput">ping role</label>
-            <select id="roleInput">
-              <option value="r1">@here</option>
-              <option value="r2">@everyone</option>
-              <option value="r3">@Banwave Ping</option>
-              <option value="r4">@Devs</option>
-              <option value="r5">none</option>
-            </select>
-          </div>
-          <div class="input-row">
-            <label for="prefixInput">bot command prefix</label>
-            <input type="text" id="prefixInput" value="?" maxlength="3">
-          </div>
-        </div>
-
-        <!-- automation -->
-        <div class="settings-section">
-          <div class="section-label">🤖 automation</div>
-          <div class="toggle-row">
-            <div class="toggle-info">
-              <span class="toggle-name">auto-thread banwaves</span>
-              <span class="toggle-desc">create a thread per banwave event for discussion</span>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="tglThreads">
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="toggle-row">
-            <div class="toggle-info">
-              <span class="toggle-name">quiet hours (12am–8am)</span>
-              <span class="toggle-desc">mute non-critical pings during quiet hours</span>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="tglQuiet">
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="toggle-row">
-            <div class="toggle-info">
-              <span class="toggle-name">daily digest</span>
-              <span class="toggle-desc">one summary message at 6pm with all updates</span>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="tglDigest" checked>
-              <span class="slider"></span>
-            </label>
+            <label for="roleInput">ping role ID (or leave empty for @here)</label>
+            <input type="text" id="roleInput" placeholder="e.g. 123456789012345678">
           </div>
         </div>
 
@@ -1180,222 +177,168 @@
       </div>
     </div>
 
-    <!-- footer -->
     <div class="foot">
       <span>rbx watch · not affiliated with roblox corp</span>
-      <span class="ping"><span class="dot"></span> ws · connected</span>
+      <span class="ping"><span class="dot" style="background:#2ecc71; width:6px; height:6px; border-radius:50%; display:inline-block;"></span> system online</span>
     </div>
-  </div>
-
-  <!-- toast -->
-  <div class="toast" id="toast">
-    <span class="bell">🔔</span>
-    <span id="toastMsg">banwave detected — check updates</span>
   </div>
 
   <script>
     (function() {
-      // ---- state ----
-      let isLoggedIn = false;
       let currentUser = null;
+      let userGuilds = [];
+      const https://notificator-wq0r.onrender.com/auth/discord = window.location.origin; // Automatically grabs your render domain
 
-      // dom refs
+      // DOM Elements
       const headRight = document.getElementById('headRight');
-      const discordLoginBtn = document.getElementById('discordLoginBtn');
-      const discordLoginBig = document.getElementById('discordLoginBig');
       const settingsLocked = document.getElementById('settingsLocked');
       const settingsConfig = document.getElementById('settingsConfig');
-      const settingsTab = document.getElementById('settingsTab');
+      const guildSelect = document.getElementById('guildSelect');
       const saveBtn = document.getElementById('saveConfigBtn');
       const saveStatus = document.getElementById('saveStatus');
 
-      // ---- tabs ----
-      const tabs = document.querySelectorAll('.tab-btn');
-      const panels = {
-        updates: document.getElementById('panel-updates'),
-        banwaves: document.getElementById('panel-banwaves'),
-        faq: document.getElementById('panel-faq'),
-        settings: document.getElementById('panel-settings')
-      };
-
-      tabs.forEach(btn => {
+      // --- TABS ---
+      document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-          tabs.forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
           btn.classList.add('active');
-          Object.values(panels).forEach(p => p.classList.remove('active'));
-          const tabName = btn.dataset.tab;
-          if (panels[tabName]) panels[tabName].classList.add('active');
-          // if clicking settings tab, refresh lock state
-          if (tabName === 'settings') refreshSettingsLock();
+          document.getElementById(`panel-${btn.dataset.tab}`).classList.add('active');
         });
       });
 
-      // ---- FAQ accordion ----
-      document.querySelectorAll('.faq-item').forEach(item => {
-        const q = item.querySelector('.faq-q');
-        q.addEventListener('click', () => item.classList.toggle('open'));
-      });
-
-      // ---- countdown ----
-      function updateCountdown() {
-        const now = new Date();
-        const target = new Date(now.getTime() + (4 * 60 * 60 + 32 * 60 + 18) * 1000);
-        const diff = target - now;
-        if (diff <= 0) {
-          document.getElementById('countdownNum').textContent = '00';
-          document.getElementById('countdownMin').textContent = '00';
-          document.getElementById('countdownSec').textContent = '00';
-          return;
-        }
-        const hours = Math.floor(diff / (1000 * 60 * 60));
-        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const secs = Math.floor((diff % (1000 * 60)) / 1000);
-        document.getElementById('countdownNum').textContent = String(hours).padStart(2, '0');
-        document.getElementById('countdownMin').textContent = String(mins).padStart(2, '0');
-        document.getElementById('countdownSec').textContent = String(secs).padStart(2, '0');
-      }
-      updateCountdown();
-      setInterval(updateCountdown, 1000);
-
-      // ---- discord login logic ----
-      // NOTE: this simulates the oauth flow client-side.
-      // in production you'd redirect to https://discord.com/oauth2/authorize?client_id=...&redirect_uri=...&response_type=code&scope=identify%20guilds
-      // and handle the callback on your backend to exchange the code for a token.
-
-      function fakeDiscordUser() {
-        const names = ['vex', 'engineer', 'gremlin', 'crackeddev', 'nullptr', 'kernelpanic'];
-        const n = names[Math.floor(Math.random() * names.length)];
-        return {
-          id: String(Math.floor(Math.random() * 999999999)),
-          username: n,
-          discriminator: String(Math.floor(Math.random() * 9000) + 1000),
-          avatar: n[0].toUpperCase()
-        };
-      }
-
-      function loginWithDiscord() {
-        if (isLoggedIn) {
-          // logout
-          isLoggedIn = false;
-          currentUser = null;
+      // --- AUTH CHECK ---
+      async function checkAuth() {
+        try {
+          const res = await fetch('/api/me');
+          if (!res.ok) throw new Error('Not logged in');
+          const data = await res.json();
+          
+          currentUser = data.user;
+          userGuilds = data.guilds;
+          
           renderHeader();
-          refreshSettingsLock();
-          showToast('logged out — see you around');
-          return;
-        }
-
-        // simulate oauth redirect + callback
-        showToast('opening discord oauth...');
-        setTimeout(() => {
-          currentUser = fakeDiscordUser();
-          isLoggedIn = true;
+          unlockSettings();
+        } catch (err) {
           renderHeader();
-          refreshSettingsLock();
-          showToast(`signed in as ${currentUser.username}#${currentUser.discriminator}`);
-          // auto-switch to settings tab
-          const settingsBtn = document.querySelector('[data-tab="settings"]');
-          if (settingsBtn) settingsBtn.click();
-        }, 800);
+          lockSettings();
+        }
       }
 
+      // --- HEADER RENDER ---
       function renderHeader() {
-        if (isLoggedIn && currentUser) {
+        if (currentUser) {
           headRight.innerHTML = `
             <div class="badge"><span class="dot"></span> live · 2.4k online</div>
-            <div class="user-chip" id="userChip" title="click to log out">
-              <div class="avatar">${currentUser.avatar}</div>
-              <div>
-                <div class="uname">${currentUser.username}</div>
-                <div class="udisc">#${currentUser.discriminator}</div>
-              </div>
+            <div class="user-chip" id="logoutBtn" title="click to log out">
+              <div class="avatar">${currentUser.username[0].toUpperCase()}</div>
+              <div class="uname">${currentUser.username}</div>
             </div>
           `;
-          document.getElementById('userChip').addEventListener('click', loginWithDiscord);
+          document.getElementById('logoutBtn').addEventListener('click', logout);
         } else {
           headRight.innerHTML = `
             <div class="badge"><span class="dot"></span> live · 2.4k online</div>
-            <button class="discord-btn" id="discordLoginBtn">
+            <a href="/auth/discord" class="discord-btn">
               <svg viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.291a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
-              sign in with discord
-            </button>
+              sign in
+            </a>
           `;
-          document.getElementById('discordLoginBtn').addEventListener('click', loginWithDiscord);
         }
       }
 
-      function refreshSettingsLock() {
-        if (isLoggedIn) {
-          settingsLocked.style.display = 'none';
-          settingsConfig.style.display = 'block';
-        } else {
-          settingsLocked.style.display = 'flex';
-          settingsConfig.style.display = 'none';
-        }
+      async function logout() {
+        await fetch('/api/logout', { method: 'POST' });
+        window.location.reload();
       }
 
-      // attach initial listeners
-      discordLoginBtn.addEventListener('click', loginWithDiscord);
-      discordLoginBig.addEventListener('click', loginWithDiscord);
+      // --- SETTINGS UI LOGIC ---
+      function lockSettings() {
+        settingsLocked.style.display = 'flex';
+        settingsConfig.style.display = 'none';
+      }
 
-      // ---- settings save ----
-      saveBtn.addEventListener('click', function() {
-        const config = {
-          guild: document.getElementById('guildSelect').value,
-          updates: document.getElementById('tglUpdates').checked,
-          banwaves: document.getElementById('tglBanwaves').checked,
-          future: document.getElementById('tglFuture').checked,
-          hwid: document.getElementById('tglHwid').checked,
-          channel: document.getElementById('channelInput').value,
-          role: document.getElementById('roleInput').value,
-          prefix: document.getElementById('prefixInput').value,
-          threads: document.getElementById('tglThreads').checked,
-          quiet: document.getElementById('tglQuiet').checked,
-          digest: document.getElementById('tglDigest').checked
-        };
-        // in production: POST to /api/bot/config with config + auth token
-        console.log('saved config:', config);
-        saveStatus.classList.add('show');
-        showToast('bot config saved — changes pushed to server');
-        setTimeout(() => saveStatus.classList.remove('show'), 2500);
+      function unlockSettings() {
+        settingsLocked.style.display = 'none';
+        settingsConfig.style.display = 'block';
+        
+        // Populate guild dropdown
+        guildSelect.innerHTML = '';
+        if (userGuilds.length === 0) {
+          guildSelect.innerHTML = '<option value="">no admin servers found</option>';
+          return;
+        }
+        
+        userGuilds.forEach(g => {
+          const opt = document.createElement('option');
+          opt.value = g.id;
+          opt.textContent = g.name;
+          guildSelect.appendChild(opt);
+        });
+
+        // Load config for the first guild
+        loadConfig(userGuilds[0].id);
+      }
+
+      // Change guild -> load that guild's config
+      guildSelect.addEventListener('change', (e) => {
+        loadConfig(e.target.value);
       });
 
-      // ---- toast ----
-      const toast = document.getElementById('toast');
-      const toastMsg = document.getElementById('toastMsg');
-
-      function showToast(msg) {
-        toastMsg.textContent = msg;
-        toast.classList.add('show');
-        clearTimeout(window.__toastTimer);
-        window.__toastTimer = setTimeout(() => toast.classList.remove('show'), 4000);
+      async function loadConfig(guildId) {
+        if (!guildId) return;
+        try {
+          const res = await fetch(`/api/config/${guildId}`);
+          const config = await res.json();
+          
+          // Default to true if undefined
+          document.getElementById('tglUpdates').checked = config.updates !== false;
+          document.getElementById('tglBanwaves').checked = config.banwaves !== false;
+          document.getElementById('channelInput').value = config.channel || '';
+          document.getElementById('roleInput').value = config.role || '';
+        } catch (err) {
+          console.error('Failed to load config');
+        }
       }
 
-      // initial toast
-      setTimeout(() => showToast('banwave detected — check updates'), 2500);
+      // Save config
+      saveBtn.addEventListener('click', async () => {
+        const guildId = guildSelect.value;
+        if (!guildId) return alert('Select a server first');
 
-      // random future toasts
-      setInterval(() => {
-        const messages = [
-          'new update pushed — v0.621.3',
-          'banwave risk elevated — lock in',
-          'future update detected — 3d out',
-          'byfron patch — offsets shifted',
-          'bot: 3 new guilds configured'
-        ];
-        showToast(messages[Math.floor(Math.random() * messages.length)]);
-      }, 22000);
+        const config = {
+          updates: document.getElementById('tglUpdates').checked,
+          banwaves: document.getElementById('tglBanwaves').checked,
+          channel: document.getElementById('channelInput').value.trim(),
+          role: document.getElementById('roleInput').value.trim() || 'none'
+        };
 
-      // browser notification permission
-      if ('Notification' in window && Notification.permission === 'default') {
-        document.body.addEventListener('click', function askPerm() {
-          if (Notification.permission === 'default') Notification.requestPermission();
-          document.body.removeEventListener('click', askPerm);
-        }, { once: true });
-      }
+        saveBtn.textContent = 'saving...';
+        saveBtn.disabled = true;
 
-      // init
-      renderHeader();
-      refreshSettingsLock();
+        try {
+          const res = await fetch(`/api/config/${guildId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(config)
+          });
+          
+          if (res.ok) {
+            saveStatus.classList.add('show');
+            setTimeout(() => saveStatus.classList.remove('show'), 2500);
+          } else {
+            alert('Failed to save');
+          }
+        } catch (err) {
+          alert('Network error');
+        } finally {
+          saveBtn.textContent = 'save config';
+          saveBtn.disabled = false;
+        }
+      });
+
+      // Boot up
+      checkAuth();
     })();
   </script>
 </body>
