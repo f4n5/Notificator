@@ -27,7 +27,7 @@ initDb().catch(err => console.error('db init failed:', err.message));
 
 // CORS must match your GitHub Pages URL EXACTLY
 app.use(cors({
-  origin: 'https://f4n5.github.io', 
+  origin: 'https://f4n5.github.io/Notificator/', 
   credentials: true
 }));
 app.use(express.json());
